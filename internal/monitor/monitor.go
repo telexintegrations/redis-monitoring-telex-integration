@@ -13,6 +13,8 @@ type RedisMonitor struct {
 func NewRedisMonitor(addr string) *RedisMonitor {
 	client := redis.NewClient(&redis.Options{
 		Addr: addr,
+		Password: "",    // No password
+		DB:       0,     // Default DB
 	})
 	return &RedisMonitor{Client: client}
 }
