@@ -1,4 +1,4 @@
-module redis-monitor
+module github.com/BerylCAtieno/redis-monitor
 
 go 1.23.5
 
