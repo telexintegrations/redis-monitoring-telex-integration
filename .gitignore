@@ -27,3 +27,5 @@ go.work.sum
 # Ignore redis binary dump (dump.rdb) files
 
 *.rdb
+
+scripts/
