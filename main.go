@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"log"
+	"os"
 	"time"
 
 	"github.com/BerylCAtieno/redis-monitor/internal/monitor"
@@ -23,7 +24,17 @@ func main() {
 	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel() // Ensure cleanup
 
-	redisMon := monitor.NewRedisMonitor("localhost:6379")
+	// Get Redis host from environment variable with a default fallback
+	redisHost := os.Getenv("REDIS_HOST")
+	if redisHost == "" {
+		redisHost = "localhost:6379"
+		log.Println("⚠️ Using default Redis host:", redisHost)
+	} else {
+		log.Println("✅ Using Redis host from env:", redisHost)
+	}
+
+	// Initialize Redis monitor with the configured host
+	redisMon := monitor.NewRedisMonitor(redisHost)
 
 	ticker := time.NewTicker(1 * time.Hour)
 	defer ticker.Stop()
@@ -34,19 +45,19 @@ func main() {
 			log.Println("❌ Error fetching memory:", err)
 			continue
 		}
-	
+
 		slowLogs, err := redisMon.GetSlowQueryCount(ctx)
 		if err != nil {
 			log.Println("❌ Error fetching slow log count:", err)
 			continue
 		}
-	
+
 		cpuUsage, err := redisMon.GetCPUUsage()
 		if err != nil {
 			log.Println("❌ Error fetching CPU usage:", err)
 			continue
 		}
-	
+
 		alertMessage := monitor.ShouldSendAlert(memUsage, slowLogs, cpuUsage)
 		if alertMessage != "" {
 			notifier.SendAlert(alertMessage)
