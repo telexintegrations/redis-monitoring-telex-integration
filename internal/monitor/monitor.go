@@ -15,9 +15,10 @@ type RedisMonitor struct {
 	Client *redis.Client
 }
 
-func NewRedisMonitor(addr string) *RedisMonitor {
+// NewRedisMonitor initializes a new Redis client with configurations.
+func NewRedisMonitor(redisAddr string) *RedisMonitor {
 	client := redis.NewClient(&redis.Options{
-		Addr: addr,
+		Addr: redisAddr,
 	})
 	return &RedisMonitor{Client: client}
 }
@@ -29,26 +30,29 @@ func (r *RedisMonitor) GetMemoryUsage() (int64, error) {
 		return 0, err
 	}
 
-	var usage int64
-	fmt.Sscanf(mem, "used_memory:%d", &usage)
-	return usage, nil
+	lines := strings.Split(mem, "\n")
+	for _, line := range lines {
+		if strings.HasPrefix(line, "used_memory:") {
+			var usage int64
+			_, err := fmt.Sscanf(line, "used_memory:%d", &usage)
+			if err != nil {
+				log.Println("Error parsing memory usage:", err)
+				return 0, err
+			}
+			return usage, nil
+		}
+	}
+	return 0, fmt.Errorf("memory usage metric not found")
 }
 
-// get slow queries count 
+// GetSlowQueryCount retrieves the number of slow queries logged by Redis.
 func (r *RedisMonitor) GetSlowQueryCount(ctx context.Context) (int, error) {
-	res, err := r.Client.Do(ctx, "SLOWLOG", "GET").StringSlice()
+	res, err := r.Client.Do(ctx, "SLOWLOG", "LEN").Int()
 	if err != nil {
 		return 0, err
 	}
-
-	// Each slow log entry consists of multiple fields, so we count logs by dividing total entries
-	// Redis slow log entries have 4+ fields per log (varies by Redis version)
-	const slowLogEntrySize = 4 // Change if your Redis version has a different log format
-	count := len(res) / slowLogEntrySize
-
-	return count, nil
+	return res, nil
 }
-
 
 // GetCPUUsage retrieves Redis CPU usage statistics.
 func (r *RedisMonitor) GetCPUUsage() (float64, error) {
