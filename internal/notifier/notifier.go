@@ -5,9 +5,10 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+
 )
 
-const WebhookURL = "https://ping.telex.im/v1/webhooks/01951f3f-d29a-75c2-acb9-d8b83553d2a5"
+var WebhookURL = "TELEX_WEBHOOK_URL"
 
 func SendAlert(message string) {
 	data := map[string]string{
