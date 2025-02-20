@@ -16,6 +16,10 @@ type Alert struct {
 	Description string    `json:"description"`
 }
 
+func (a *Alert) SendAlert(s string) {
+	panic("unimplemented")
+}
+
 // TelexClient handles sending alerts to Telex.
 type TelexClient struct {
 	WebhookURL string
