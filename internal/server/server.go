@@ -1,38 +1,29 @@
 package server
 
 import (
-	"fmt"
-	"log"
-	"net/http"
 
-	"github.com/gorilla/mux"
-	"github.com/BerylCAtieno/redis-monitor/internal/monitor"
+	"github.com/gorilla/mux" // Using Gorilla Mux for better routing
 )
 
-// Server represents the HTTP server
+// Server struct holds router instance
 type Server struct {
-	RedisMonitor *monitor.RedisMonitor
-	Alert        *monitor.Alert
+	Router *mux.Router
 }
 
-// NewServer creates a new instance of the server
-func NewServer(redisMonitor *monitor.RedisMonitor, alert *monitor.Alert) *Server {
-	return &Server{
-		RedisMonitor: redisMonitor,
-		Alert:        alert,
+// NewServer initializes and returns a new server instance
+func NewServer() *Server {
+	s := &Server{
+		Router: mux.NewRouter(),
 	}
+
+	// Register handlers
+	s.routes()
+
+	return s
 }
 
-// Start initializes the server and starts listening
-func (s *Server) Start(port int) {
-	r := mux.NewRouter()
-
-	// Define routes
-	r.HandleFunc("/tick", TickHandler).Methods("GET")
-	r.HandleFunc("/alert", AlertHandler(s.RedisMonitor, s.Alert)).Methods("POST")
-
-	// Start the server
-	addr := fmt.Sprintf(":%d", port)
-	log.Printf("Server listening on %s...", addr)
-	log.Fatal(http.ListenAndServe(addr, r))
+// routes registers all endpoints
+func (s *Server) routes() {
+	s.Router.HandleFunc("/integration.json", IntegrationHandler).Methods("GET")
+	s.Router.HandleFunc("/tick", TickHandler).Methods("POST")
 }
