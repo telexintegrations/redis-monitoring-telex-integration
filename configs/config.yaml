@@ -8,3 +8,6 @@ monitoring:
   memory_threshold: 104857600  # 100MB
   slow_log_threshold: 10
   cpu_threshold: 80.0
+
+deployment:
+  deploy_url: "https://redis-monitoring-telex-integration.onrender.com"
